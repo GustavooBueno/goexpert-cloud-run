@@ -1,57 +1,119 @@
-# Lab Cloud Run
+# Lab Cloud Run - API de CEP e Previsão do Tempo
 
 Laboratório Cloud Run da Pós Graduação Go Expert FullCycle.
 
 ## Descrição
 
-Foco: Desenvolver um sistema em Go que, ao receber um CEP, identifique a cidade e forneça a previsão do tempo, incluindo a temperatura em Celsius, Fahrenheit e Kelvin. O sistema deverá ser implantado no Google Cloud Run.
+Esta API em Go, quando recebe um CEP, identifica a cidade correspondente e fornece a previsão do tempo, incluindo a temperatura em Celsius, Fahrenheit e Kelvin.
 
-Requisitos: O sistema deve aceitar um CEP válido de 8 dígitos, buscar a localização correspondente e, com base nisso, obter as temperaturas, formatando-as em Celsius, Fahrenheit e Kelvin.
+## Funcionalidades
 
-Cenários:
+- Recebe um CEP válido de 8 dígitos
+- Busca a localização usando a API ViaCEP
+- Obtém a previsão do tempo atual para a cidade usando a API WeatherAPI
+- Retorna as temperaturas em Celsius, Fahrenheit e Kelvin
 
-Em caso de sucesso:
-- Código HTTP: 200
-- Response Body: { "temp_C": 28.5, "temp_F": 28.5, "temp_K": 28.5 }
-Em caso de falha, caso o CEP não seja válido (com formato correto):
-- Código HTTP: 422
-- Mensagem: invalid zipcode
-​​​Em caso de falha, caso o CEP não seja encontrado:
-- Código HTTP: 404
-- Mensagem: can not find zipcode
-- Deverá ser realizado o deploy no Google Cloud Run.
+## Requisitos
 
-Dicas:
+- Docker e Docker Compose
+- Go 1.19+ (para desenvolvimento local)
+- Acesso à internet (para comunicação com as APIs externas)
 
-Utilize a API viaCEP (ou similar) para encontrar a localização que deseja consultar a temperatura: https://viacep.com.br/
-Utilize a API WeatherAPI (ou similar) para consultar as temperaturas desejadas: https://www.weatherapi.com/
-Para realizar a conversão de Celsius para Fahrenheit, utilize a seguinte fórmula: F = C * 1,8 + 32
-Para realizar a conversão de Celsius para Kelvin, utilize a seguinte fórmula: K = C + 273
-Sendo F = Fahrenheit
-Sendo C = Celsius
-Sendo K = Kelvin
+## Como Executar
 
-Entrega:
+### Com Docker (Recomendado)
 
-O código-fonte completo da implementação.
-Testes automatizados demonstrando o funcionamento.
-Utilize docker/docker-compose para que possamos realizar os testes de sua aplicação.
-Deploy realizado no Google Cloud Run (free tier) e endereço ativo para ser acessado.
+1. Clone o repositório:
+   ```
+   git clone https://github.com/seu-usuario/goexpert-cloud-run.git
+   cd goexpert-cloud-run
+   ```
 
-## Executar o desafio
+2. Inicie os containers Docker:
+   ```
+   docker-compose up -d
+   ```
 
-1. Inicie os containers Docker e execute a aplicação executando o seguinte comando na raiz do projeto:
-`docker-compose up -d`
+3. A API estará disponível em: http://localhost:8080
 
-## Portas
+## Testes 
 
-- HTTP (web server): 8080
+### Executando testes localmente
 
-## Testes
+```bash
+# Todos os testes
+go test -v
 
-1. Acesse o arquivo /api_test.go
+# Com cobertura
+go test -cover -v
+```
 
-2. Execute cada teste, selecionando o teste que deseja e clicando em "run test".
+### Descrição dos Testes Automatizados
 
-## Endereço do Cloud Run
-https://cloud-run-54irf5cqoa-uc.a.run.app/cep?cep=41650000
+O arquivo `api_test.go` contém os seguintes testes:
+
+- **TestInvalidCEP**: Verifica se a API retorna erro 422 quando um CEP inválido é fornecido
+- **TestInvalidMethod**: Verifica se a API retorna erro 405 quando um método HTTP diferente de GET é usado
+- **TestValidCEP**: Verifica se a API retorna as temperaturas corretamente para um CEP válido
+
+## Testes Manuais
+
+### Cenários de Teste
+
+1. **CEP Válido**:
+   ```
+   curl http://localhost:8080/cep?cep=01001000
+   ```
+   **Resultado Esperado**: Código HTTP 200 com JSON contendo as temperaturas
+   ```json
+   { "temp_C": 28.5, "temp_F": 83.3, "temp_K": 301.5 }
+   ```
+
+2. **CEP com Formato Inválido**:
+   ```
+   curl http://localhost:8080/cep?cep=123
+   ```
+   **Resultado Esperado**: Código HTTP 422 com mensagem "invalid zipcode"
+
+3. **CEP Não Encontrado**:
+   ```
+   curl http://localhost:8080/cep?cep=99999999
+   ```
+   **Resultado Esperado**: Código HTTP 404 com mensagem "can not find zipcode"
+
+4. **Método HTTP Inválido**:
+   ```
+   curl -X POST http://localhost:8080/cep?cep=01001000
+   ```
+   **Resultado Esperado**: Código HTTP 405 com mensagem "Invalid request method"
+
+## Deploy no Google Cloud Run
+
+A aplicação está disponível publicamente no seguinte endereço:
+https://cep-weather-service-522784420355.southamerica-east1.run.app
+
+### Testando a Aplicação no Google Cloud Run
+
+Você pode testar a aplicação implantada no Google Cloud Run usando os seguintes métodos:
+
+#### Via Navegador
+
+   - Acesse: https://cep-weather-service-522784420355.southamerica-east1.run.app/cep?cep=01001000
+   - Resultado: Página com as temperaturas em JSON
+
+#### Via Curl
+
+1. Envie o CEP:
+   ```bash
+   curl https://cep-weather-service-522784420355.southamerica-east1.run.app/cep?cep=01001000
+   ```
+
+2. Execute a requisição e verifique a resposta
+
+### Exemplos de CEPs para Teste
+
+- **São Paulo (Centro)**: 01001000
+- **Rio de Janeiro (Centro)**: 20010000
+- **Salvador**: 40010000
+- **Brasília**: 70040010
+- **Curitiba**: 80010010
