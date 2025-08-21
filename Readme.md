@@ -1,6 +1,4 @@
-# Lab Cloud Run - API de CEP e Previsão do Tempo
-
-Laboratório Cloud Run da Pós Graduação Go Expert FullCycle.
+# Cloud Run - API de CEP e Previsão do Tempo
 
 ## Descrição
 
